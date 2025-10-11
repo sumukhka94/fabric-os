@@ -6,11 +6,15 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
+import { Trash, ScanEye } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 
 export default function ManageTemplates() {
     const [selectedTemplate, setSelectedTemplate] = useState<string>("");
     const [searchTerm,setSearchTerm] = useState<string>("");
     const [subject , setSubject] = useState<string>("");
+    const [templateName, setTemplateName] = useState<string>("");
+    const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
 
     const templates : TemplateList[] = [
         { id: "1", templateName: "Welcome Email", channel: "Email" },
@@ -91,6 +95,32 @@ export default function ManageTemplates() {
         }
     }
 
+    const clearTemplate = () => {
+        setSubject("");
+        setSelectedTemplate("");
+        setTemplateName("");
+    }
+
+    const handleTemplateSubmit = () => {
+        if (!confirm("Are you sure you want to Submit the New Template ?")) return;
+        console.log({ templateName, subject });
+        
+    }
+
+    const handleDelete = (id : string ) => {
+        if (!confirm("Are you sure you want to Delete the Template Permanently ?")) return;
+        console.log("Deleting", id);
+    }
+
+    const submitEdit = () => {
+        if (!confirm("Are you sure you want to Edit the Template ?")) return;
+        console.log("Editing", selectedTemplate , "with the new subject" , subject);
+    }
+
+    const handlePreview = () => {
+        setIsPreviewOpen(true);
+    }
+
     return (
         <div className="">
             <nav className="bg-green-200 rounded-full p-2 flex items-center gap-5 justify-between m-1">
@@ -112,6 +142,7 @@ export default function ManageTemplates() {
                                     <TableHead className="text-center">ID</TableHead>
                                     <TableHead className="text-center">Template Name</TableHead>
                                     <TableHead className="text-center">Channel</TableHead>
+                                    <TableHead className="text-center">Delete</TableHead>
                                 </TableRow>
                             </TableHeader>
                         </Table>
@@ -133,6 +164,11 @@ export default function ManageTemplates() {
                                             <TableCell className="text-center">{template.id}</TableCell>
                                             <TableCell className="text-center">{template.templateName}</TableCell>
                                             <TableCell className="text-center">{template.channel}</TableCell>
+                                            <TableCell className="text-center">
+                                                <Button onClick={() => handleDelete(template.id)} className="bg-red-600 cursor-pointer" size="icon">
+                                                    <Trash className="h-4 w-4" />
+                                                </Button>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -141,10 +177,31 @@ export default function ManageTemplates() {
                     </div>
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
-                    <Button className = "self-end" onClick={addNameTag}> Add Name Tag</Button>
+                    <div className="flex gap-2">
+                        <Input className = "flex-1" type="text" placeholder={filteredTemplates.find((s) => selectedTemplate == s.id)?.templateName || "Enter the template Name"} disabled = {!!selectedTemplate} value={templateName} onChange={(e) => setTemplateName(e.target.value)}></Input>
+                        <Button onClick={addNameTag}> Add Name Tag</Button>
+                        <Button onClick={clearTemplate}> Clear Template</Button>
+                        <Button onClick={submitEdit} disabled={!selectedTemplate}> Submit Edit</Button>
+                        <Button onClick={handlePreview} disabled={!subject || !templateName}> <ScanEye className="w-4 h-4"></ScanEye> </Button>
+                        <Button className="bg-green-800 disabled:bg-red-700" onClick={handleTemplateSubmit} disabled = {!!selectedTemplate || !subject || !templateName}> Add New Template</Button>
+                    </div>
                     <Textarea ref = {textareaRef} placeholder="Enter the Subject matter" className="flex-1 w-full border rounded-md" value={subject} onChange={(e) => setSubject(e.target.value)}/>
                 </div>         
             </div>
+            <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{templateName}</DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription>
+                        Check for the Template Preview after Tag Replacement.
+                    </DialogDescription>
+                    <div>
+                        <h3 className="text-center">Subject</h3>
+                        <p>{subject}</p>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
