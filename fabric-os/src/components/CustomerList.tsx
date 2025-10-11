@@ -40,7 +40,7 @@ export default function CustomerList({ customers, handleSubmit, enableEmail, ena
     return (
         <div className="flex flex-col">
             <div className="flex self-end gap-2 my-2">
-                <Input type="text" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                <Input type="text" placeholder="Search" className = "min-w-25" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                 <Button type="submit" className="cursor-pointer" onClick={() => {handleSubmit({selectedCustomers, channel: "Email"})}} disabled={!enableEmail || selectedCustomers.length === 0}> Email for Selected Customers </Button>
                 <Button type="submit" className="cursor-pointer" onClick={() => {handleSubmit({selectedCustomers, channel: "SMS"})}} disabled={!enableSMS || selectedCustomers.length === 0}> SMS for Selected Customers </Button>
             </div>

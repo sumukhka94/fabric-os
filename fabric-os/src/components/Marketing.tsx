@@ -1,31 +1,28 @@
 import { Link } from "react-router-dom";
 import CustomerList from "./CustomerList";
-import type { Customer, SendToInfo } from "@/types/marketingTypes";
+import type { Customer, SendToInfo, TemplateList } from "@/types/marketingTypes";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+
 
 export default function Marketing() {
     const [SelectedEmailTemplate, setEmailTemplate] = useState<string>("");
     const [SelectedSmsTemplate, setSmsTemplate] = useState<string>("");
     const [dialogOpen, setDialogOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState<SendToInfo | null>(null);
-    
-    const emailTemplates = [
-        { id: "1", templateName: "Welcome Email" },
-        { id: "2", templateName: "Promotional Offer" },
-        { id: "3", templateName: "Newsletter" },
-        { id: "4", templateName: "Product Launch" },
-        { id: "5", templateName: "Seasonal Sale" }
+
+    const templates : TemplateList[] = [
+        { id: "1", templateName: "Welcome Email", channel: "Email" },
+        { id: "2", templateName: "Promotional Offer", channel: "Email" },
+        { id: "3", templateName: "Newsletter", channel: "Email" },
+        { id: "4", templateName: "Flash Sale Alert", channel: "SMS" },
+        { id: "5", templateName: "Order Confirmation", channel: "SMS" }
     ];
     
-    const smsTemplates = [
-        { id: "1", templateName: "Flash Sale Alert" },
-        { id: "2", templateName: "Order Confirmation" },
-        { id: "3", templateName: "Discount Code" },
-        { id: "4", templateName: "Event Reminder" },
-        { id: "5", templateName: "Thank You Message" }
-    ];
+    const emailTemplates = templates.filter((template) => template.channel === "Email");
+    
+    const smsTemplates = templates.filter((template) => template.channel === "SMS");
     
     const dummyCustomers: Customer[] = [
         { id: 1, name: "John Doe", email: "john@email.com", phone: "123-456-7890", address: "123 Main St" },
@@ -78,7 +75,7 @@ export default function Marketing() {
                 <h1 className="text-2xl">Marketing</h1>
                 <ul className="flex items-center justify-center gap-2">
                     <li className="border-2 border-black p-3 rounded-full"><Link to = "/"> Home </Link></li>
-                    <li className="border-2 border-black p-3 rounded-full"> Manage Templates </li>
+                    <li className="border-2 border-black p-3 rounded-full"> <Link to = "/manage-templates"> ManageTemplates </Link> </li>
                 </ul>
             </nav>
             <div className="flex bg-cyan-200 m-1 rounded-full p-3 gap-1">
