@@ -6,6 +6,13 @@ export interface Customer {
     address: string;
 }
 
+export interface AddCustomer {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+}
+
 export interface SendToInfo {
     selectedCustomers: number[];
     channel : string;
