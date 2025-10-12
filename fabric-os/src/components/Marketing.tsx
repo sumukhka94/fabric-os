@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import CustomerList from "./CustomerList";
-import type { Customer, SendToInfo, TemplateList } from "@/types/marketingTypes";
+import type { SendToInfo, TemplateList } from "@/types/marketingTypes";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";

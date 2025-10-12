@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { TemplateList, TemplateSubjects } from "@/types/marketingTypes";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Input } from "./ui/input";
@@ -8,6 +8,10 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Trash, ScanEye } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
+import { deleteTemplate, editTemplate, getAllTemplates, getSubjectForTemplate } from "@/apis/TemplateAPI";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
 
 export default function ManageTemplates() {
     const [selectedTemplate, setSelectedTemplate] = useState<string>("");
@@ -15,69 +19,48 @@ export default function ManageTemplates() {
     const [subject , setSubject] = useState<string>("");
     const [templateName, setTemplateName] = useState<string>("");
     const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+    const [isChannelDialogOpen , setIsChannelDialogOpen] = useState<boolean>(false);
+    const [selectedChannel, setSelectedChannel] = useState<"Email" | "SMS" | "">("");
 
-    const templates : TemplateList[] = [
-        { id: "1", templateName: "Welcome Email", channel: "Email" },
-        { id: "2", templateName: "Promotional Offer", channel: "Email" },
-        { id: "3", templateName: "Newsletter", channel: "Email" },
-        { id: "4", templateName: "Flash Sale Alert", channel: "SMS" },
-        { id: "5", templateName: "Order Confirmation", channel: "SMS" },
-        { id: "6", templateName: "Product Launch", channel: "Email" },
-        { id: "7", templateName: "Seasonal Sale", channel: "Email" },
-        { id: "8", templateName: "Discount Code", channel: "SMS" },
-        { id: "9", templateName: "Event Reminder", channel: "SMS" },
-        { id: "10", templateName: "Thank You Message", channel: "Email" },
-        { id: "11", templateName: "Password Reset", channel: "Email" },
-        { id: "12", templateName: "Account Verification", channel: "SMS" },
-        { id: "13", templateName: "Birthday Wishes", channel: "Email" },
-        { id: "14", templateName: "Shipping Update", channel: "SMS" },
-        { id: "15", templateName: "Survey Request", channel: "Email" },
-        { id: "16", templateName: "Payment Reminder", channel: "SMS" },
-        { id: "17", templateName: "New Feature Announcement", channel: "Email" },
-        { id: "18", templateName: "Appointment Confirmation", channel: "SMS" },
-        { id: "19", templateName: "Feedback Request", channel: "Email" },
-        { id: "20", templateName: "Security Alert", channel: "SMS" },
-        { id: "21", templateName: "Holiday Greetings", channel: "Email" },
-        { id: "22", templateName: "Delivery Notification", channel: "SMS" },
-        { id: "23", templateName: "Membership Renewal", channel: "Email" },
-        { id: "24", templateName: "Two-Factor Auth", channel: "SMS" },
-        { id: "25", templateName: "Abandoned Cart", channel: "Email" }
-    ];
+    const queryClient = useQueryClient();
 
-    const templateSubjects : TemplateSubjects[] = [
-        { id: "1", subject: "Welcome to Our Platform - Get Started Today!" },
-        { id: "2", subject: "Exclusive 50% Off - Limited Time Offer!" },
-        { id: "3", subject: "Monthly Newsletter - Latest Updates & News" },
-        { id: "4", subject: "⚡ Flash Sale Alert - 24 Hours Only!" },
-        { id: "5", subject: "Your Order #12345 Has Been Confirmed" },
-        { id: "6", subject: "Introducing Our Revolutionary New Product" },
-        { id: "7", subject: "🎄 Holiday Season Sale - Up to 70% Off" },
-        { id: "8", subject: "Your Discount Code: SAVE20 - Use Now!" },
-        { id: "9", subject: "Reminder: Your Appointment Tomorrow at 2 PM" },
-        { id: "10", subject: "Thank You for Your Purchase - We Appreciate You!" },
-        { id: "11", subject: "Reset Your Password - Security Notice" },
-        { id: "12", subject: "Verify Your Account - Code: 123456" },
-        { id: "13", subject: "🎂 Happy Birthday! Here's a Special Gift" },
-        { id: "14", subject: "Your Package is Out for Delivery" },
-        { id: "15", subject: "We Value Your Opinion - Quick 2-Minute Survey" },
-        { id: "16", subject: "Payment Due Reminder - Invoice #789" },
-        { id: "17", subject: "Exciting New Features Now Available!" },
-        { id: "18", subject: "Appointment Confirmed for Dec 15, 3:00 PM" },
-        { id: "19", subject: "How Was Your Experience? Share Your Feedback" },
-        { id: "20", subject: "🔒 Security Alert: New Login Detected" },
-        { id: "21", subject: "Season's Greetings from Our Family to Yours" },
-        { id: "22", subject: "Package Delivered Successfully" },
-        { id: "23", subject: "Membership Renewal Due - Don't Miss Out!" },
-        { id: "24", subject: "Your 2FA Code: 987654" },
-        { id: "25", subject: "Don't Forget Your Cart - Complete Your Purchase" }
-    ]
+    const {data : templates} = useQuery<TemplateList[]>({
+        queryKey: ["templates"],
+        queryFn: getAllTemplates
+    })
 
-    const filteredTemplates = templates.sort((a,b) => a.templateName.localeCompare(b.templateName)).filter((template) => template.templateName.toLowerCase().includes(searchTerm.toLowerCase()) || template.channel.toLowerCase().includes(searchTerm.toLowerCase()) || template.id.includes(searchTerm))
+    const {data : fetchedsubject} = useQuery<TemplateSubjects>({
+        queryKey: ["templates", selectedTemplate],
+        queryFn: () => getSubjectForTemplate(selectedTemplate),
+        enabled : !!selectedTemplate
+    })
+
+    useEffect(() => {
+        if(fetchedsubject)
+            setSubject(fetchedsubject.subject);
+    }, [fetchedsubject])
+
+    const deleteMutation = useMutation({
+        mutationFn : (id : string) => deleteTemplate(id),
+        onSuccess : (data) => {
+            toast.success("deleted template " + data.templateName)
+            queryClient.invalidateQueries({ queryKey: ["templates"] })
+        }
+    })
+
+    const editMutation = useMutation({
+        mutationFn : (id  : string) => editTemplate(id,subject),
+        onSuccess : (data) => {
+            toast.success("Edited "+ data.id + " with the new subject " + data.subject);
+            queryClient.invalidateQueries({ queryKey: ["templates"] })
+        }
+    })
+
+    const filteredTemplates = templates?.sort((a,b) => a.templateName.localeCompare(b.templateName)).filter((template) => template.templateName.toLowerCase().includes(searchTerm.toLowerCase()) || template.channel.toLowerCase().includes(searchTerm.toLowerCase()) || template.id.includes(searchTerm))
     
 
     const handleTemplateSelection = (id: string) => {
         setSelectedTemplate(id);
-        setSubject(templateSubjects.find(ts => ts.id === id)?.subject || "");
     }
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -102,23 +85,29 @@ export default function ManageTemplates() {
     }
 
     const handleTemplateSubmit = () => {
-        if (!confirm("Are you sure you want to Submit the New Template ?")) return;
-        console.log({ templateName, subject });
-        
+        setIsChannelDialogOpen(true);
     }
 
     const handleDelete = (id : string ) => {
         if (!confirm("Are you sure you want to Delete the Template Permanently ?")) return;
-        console.log("Deleting", id);
+        deleteMutation.mutate(id);
     }
 
     const submitEdit = () => {
         if (!confirm("Are you sure you want to Edit the Template ?")) return;
-        console.log("Editing", selectedTemplate , "with the new subject" , subject);
+        editMutation.mutate(selectedTemplate)
     }
 
     const handlePreview = () => {
         setIsPreviewOpen(true);
+    }
+
+    function handleChannelSelect(channel : "Email" | "SMS"): void {
+        setSelectedChannel(channel);
+        setIsChannelDialogOpen(false);
+        if (!confirm("Are you sure you want to Submit the New Template ?")) return;
+        console.log({ templateName, subject , selectedChannel });
+        clearTemplate();
     }
 
     return (
@@ -149,7 +138,7 @@ export default function ManageTemplates() {
                         <ScrollArea className="h-80">
                             <Table>
                                 <TableBody>
-                                    {filteredTemplates.map((template) => (
+                                    {filteredTemplates?.map((template) => (
                                         <TableRow key={template.id}>
                                             <TableCell className="text-center">
                                                 <Input 
@@ -178,7 +167,7 @@ export default function ManageTemplates() {
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
                     <div className="flex gap-2">
-                        <Input className = "flex-1" type="text" placeholder={filteredTemplates.find((s) => selectedTemplate == s.id)?.templateName || "Enter the template Name"} disabled = {!!selectedTemplate} value={templateName} onChange={(e) => setTemplateName(e.target.value)}></Input>
+                        <Input className = "flex-1" type="text" placeholder={templates?.find((s) => selectedTemplate == s.id)?.templateName || "Enter the template Name"} disabled = {!!selectedTemplate} value={templateName} onChange={(e) => setTemplateName(e.target.value)}></Input>
                         <Button onClick={addNameTag}> Add Name Tag</Button>
                         <Button onClick={clearTemplate}> Clear Template</Button>
                         <Button onClick={submitEdit} disabled={!selectedTemplate}> Submit Edit</Button>
@@ -199,6 +188,19 @@ export default function ManageTemplates() {
                     <div>
                         <h3 className="text-center">Subject</h3>
                         <p>{subject}</p>
+                    </div>
+                </DialogContent>
+            </Dialog>
+            <Dialog open={isChannelDialogOpen} onOpenChange={setIsChannelDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
+                            Choose the template channel for the new Template.
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="flex gap-2 justify-center">
+                        <Button onClick={() => handleChannelSelect("Email")}>Email</Button>
+                        <Button onClick={() => handleChannelSelect("SMS")}>SMS</Button> 
                     </div>
                 </DialogContent>
             </Dialog>
