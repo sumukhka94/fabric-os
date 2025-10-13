@@ -30,3 +30,15 @@ export const editTemplate = async(id:string , subject : string) => {
 
     return response.json();
 }
+
+export const addTemplate = async (templateName : string, subject : string , selectedChannel : "Email" | "SMS") => {
+    const response = await fetch("http://localhost:8080/templates/add" , {
+        method : "POST",
+        headers : {
+            "Content-Type" : "application/json"
+        },
+        body : JSON.stringify({templateName,subject,selectedChannel})
+    })
+
+    return response.json();
+}

@@ -8,7 +8,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Trash, ScanEye } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
-import { deleteTemplate, editTemplate, getAllTemplates, getSubjectForTemplate } from "@/apis/TemplateAPI";
+import { addTemplate, deleteTemplate, editTemplate, getAllTemplates, getSubjectForTemplate } from "@/apis/TemplateAPI";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -20,7 +20,7 @@ export default function ManageTemplates() {
     const [templateName, setTemplateName] = useState<string>("");
     const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
     const [isChannelDialogOpen , setIsChannelDialogOpen] = useState<boolean>(false);
-    const [selectedChannel, setSelectedChannel] = useState<"Email" | "SMS" | "">("");
+    const [selectedChannel, setSelectedChannel] = useState<"Email" | "SMS" >("Email");
 
     const queryClient = useQueryClient();
 
@@ -53,6 +53,15 @@ export default function ManageTemplates() {
         onSuccess : (data) => {
             toast.success("Edited "+ data.id + " with the new subject " + data.subject);
             queryClient.invalidateQueries({ queryKey: ["templates"] })
+        }
+    })
+
+    const addMutation = useMutation({
+        mutationFn: () => addTemplate(templateName,subject,selectedChannel),
+        onSuccess : () => {
+            toast.success("Added the new Template " + templateName);
+            queryClient.invalidateQueries({ queryKey : ["templates"]})
+            clearTemplate();
         }
     })
 
@@ -106,8 +115,7 @@ export default function ManageTemplates() {
         setSelectedChannel(channel);
         setIsChannelDialogOpen(false);
         if (!confirm("Are you sure you want to Submit the New Template ?")) return;
-        console.log({ templateName, subject , selectedChannel });
-        clearTemplate();
+        addMutation.mutate();
     }
 
     return (
