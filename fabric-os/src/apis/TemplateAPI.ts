@@ -42,3 +42,16 @@ export const addTemplate = async (templateName : string, subject : string , sele
 
     return response.json();
 }
+
+export const getPreviewSubject = async (subject : string) => {
+    const response = await fetch("http://localhost:8080/templates/get-preview" , {
+        method : "POST",
+        headers : {
+            "Content-Type" : "application/json"
+        },
+        body : JSON.stringify({subject})
+    })
+
+    const data = await response.json();
+    return data.subject;
+}

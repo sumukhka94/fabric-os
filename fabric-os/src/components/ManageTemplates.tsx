@@ -8,7 +8,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Button } from "./ui/button";
 import { Trash, ScanEye } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
-import { addTemplate, deleteTemplate, editTemplate, getAllTemplates, getSubjectForTemplate } from "@/apis/TemplateAPI";
+import { addTemplate, deleteTemplate, editTemplate, getAllTemplates, getPreviewSubject, getSubjectForTemplate } from "@/apis/TemplateAPI";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -65,6 +65,11 @@ export default function ManageTemplates() {
         }
     })
 
+    const previewMutation = useMutation({
+        mutationFn: (subjectText: string) => getPreviewSubject(subjectText),
+        onSuccess: () => setIsPreviewOpen(true)
+    })
+
     const filteredTemplates = templates?.sort((a,b) => a.templateName.localeCompare(b.templateName)).filter((template) => template.templateName.toLowerCase().includes(searchTerm.toLowerCase()) || template.channel.toLowerCase().includes(searchTerm.toLowerCase()) || template.id.includes(searchTerm))
     
 
@@ -108,7 +113,7 @@ export default function ManageTemplates() {
     }
 
     const handlePreview = () => {
-        setIsPreviewOpen(true);
+        previewMutation.mutate(subject);
     }
 
     function handleChannelSelect(channel : "Email" | "SMS"): void {
@@ -195,7 +200,7 @@ export default function ManageTemplates() {
                     </DialogDescription>
                     <div>
                         <h3 className="text-center">Subject</h3>
-                        <p>{subject}</p>
+                        <p>{previewMutation.data}</p>
                     </div>
                 </DialogContent>
             </Dialog>
