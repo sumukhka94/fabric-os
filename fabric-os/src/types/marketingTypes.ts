@@ -21,7 +21,7 @@ export interface SendToInfo {
 export interface TemplateList {
     id : string;
     templateName : string;
-    channel : "Email" | "SMS";
+    channel : "EMAIL" | "SMS";
 }
 
 export interface TemplateSubjects {

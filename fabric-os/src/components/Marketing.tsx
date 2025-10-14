@@ -6,6 +6,7 @@ import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import { getAllCustomers } from "@/apis/CustomerAPI";
 import { useQuery } from "@tanstack/react-query";
+import { getAllTemplates } from "@/apis/TemplateAPI";
 
 
 export default function Marketing() {
@@ -14,15 +15,12 @@ export default function Marketing() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState<SendToInfo | null>(null);
 
-    const templates : TemplateList[] = [
-        { id: "1", templateName: "Welcome Email", channel: "Email" },
-        { id: "2", templateName: "Promotional Offer", channel: "Email" },
-        { id: "3", templateName: "Newsletter", channel: "Email" },
-        { id: "4", templateName: "Flash Sale Alert", channel: "SMS" },
-        { id: "5", templateName: "Order Confirmation", channel: "SMS" }
-    ];
+    const { data: templates = [] } = useQuery<TemplateList[]>({
+        queryKey: ["templates"],
+        queryFn: () => getAllTemplates()
+    })
     
-    const emailTemplates = templates.filter((template) => template.channel === "Email");
+    const emailTemplates = templates.filter((template) => template.channel === "EMAIL");
     
     const smsTemplates = templates.filter((template) => template.channel === "SMS");
     
@@ -39,7 +37,7 @@ export default function Marketing() {
 
     const confirmSubmit = () => {
         if(pendingAction) {
-            if(pendingAction.channel === "Email"){
+            if(pendingAction.channel === "EMAIL"){
                 alert(`Email sent to ${pendingAction.selectedCustomers.length} customers`);
             }
             else if(pendingAction.channel === "SMS"){

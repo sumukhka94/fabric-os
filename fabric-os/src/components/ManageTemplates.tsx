@@ -75,6 +75,7 @@ export default function ManageTemplates() {
 
     const handleTemplateSelection = (id: string) => {
         setSelectedTemplate(id);
+        setTemplateName(filteredTemplates?.find((template) => template.id == id)?.templateName || "");
     }
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -137,19 +138,17 @@ export default function ManageTemplates() {
                 <div className="flex-1 flex flex-col gap-2">
                     <Input type="text" placeholder="Search" className="w-50 self-end" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}></Input>
                     <div className="border rounded-md overflow-hidden">
-                        <Table>
-                            <TableHeader className="bg-red-200 h-10">
-                                <TableRow>
-                                    <TableHead className="text-center">Select</TableHead>
-                                    <TableHead className="text-center">ID</TableHead>
-                                    <TableHead className="text-center">Template Name</TableHead>
-                                    <TableHead className="text-center">Channel</TableHead>
-                                    <TableHead className="text-center">Delete</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                        </Table>
                         <ScrollArea className="h-80">
                             <Table>
+                                <TableHeader className="bg-red-200 h-10">
+                                    <TableRow>
+                                        <TableHead className="text-center">Select</TableHead>
+                                        <TableHead className="text-center">ID</TableHead>
+                                        <TableHead className="text-center">Template Name</TableHead>
+                                        <TableHead className="text-center">Channel</TableHead>
+                                        <TableHead className="text-center">Delete</TableHead>
+                                    </TableRow>
+                                </TableHeader>
                                 <TableBody>
                                     {filteredTemplates?.map((template) => (
                                         <TableRow key={template.id}>
@@ -180,7 +179,7 @@ export default function ManageTemplates() {
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
                     <div className="flex gap-2">
-                        <Input className = "flex-1" type="text" placeholder={templates?.find((s) => selectedTemplate == s.id)?.templateName || "Enter the template Name"} disabled = {!!selectedTemplate} value={templateName} onChange={(e) => setTemplateName(e.target.value)}></Input>
+                        <Input className = "flex-1" type="text" placeholder={"Enter the template Name"} disabled = {!!selectedTemplate} value={templateName} onChange={(e) => setTemplateName(e.target.value)}></Input>
                         <Button onClick={addNameTag}> Add Name Tag</Button>
                         <Button onClick={clearTemplate}> Clear Template</Button>
                         <Button onClick={submitEdit} disabled={!selectedTemplate}> Submit Edit</Button>
