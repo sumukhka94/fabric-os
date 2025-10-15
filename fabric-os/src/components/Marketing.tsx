@@ -1,12 +1,15 @@
 import { Link } from "react-router-dom";
 import CustomerList from "./CustomerList";
-import type { SendToInfo, TemplateList } from "@/types/marketingTypes";
+import type { CommunicateInfo, SendToInfo, TemplateList } from "@/types/marketingTypes";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import { getAllCustomers } from "@/apis/CustomerAPI";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { getAllTemplates } from "@/apis/TemplateAPI";
+import { communicate } from "@/apis/MarketingAPI";
+import { toast } from "sonner";
+import { Spinner } from "./ui/spinner";
 
 
 export default function Marketing() {
@@ -32,25 +35,39 @@ export default function Marketing() {
 
     const handleSubmit = (sendTo : SendToInfo ) => {
         setPendingAction(sendTo);
-        setDialogOpen(true);
+        setDialogOpen(true);    
     };
+
+    const communicateMutation = useMutation({
+        mutationFn: (data: CommunicateInfo) => communicate(data),
+        onSuccess: (response) => {
+            toast.success(`Communicated to ${response.customersNotified} customers`);
+            if (response.customersNotFound.length > 0) {
+                toast.warning(`Customers not found: ${response.customersNotFound.join(", ")}`);
+            }
+        },
+        onError: () => {
+            toast.error("Failed to communicate to the customers")
+        },
+        onSettled: () => {
+            setDialogOpen(false);
+            setPendingAction(null);
+        }
+    })
 
     const confirmSubmit = () => {
         if(pendingAction) {
-            if(pendingAction.channel === "EMAIL"){
-                alert(`Email sent to ${pendingAction.selectedCustomers.length} customers`);
-            }
-            else if(pendingAction.channel === "SMS"){
-                alert(`SMS sent to ${pendingAction.selectedCustomers.length} customers`);
-            }
+           communicateMutation.mutate({
+            channel : pendingAction.channel,
+            templateId : pendingAction.channel === "EMAIL" ? SelectedEmailTemplate : SelectedSmsTemplate,
+            selectedCustomers : pendingAction.selectedCustomers
+           })
         }
-        setDialogOpen(false);
-        setPendingAction(null);
     };
 
     return (
         <div>
-            <nav className="bg-green-200 rounded-full p-2 flex items-center gap-5 justify-between m-1">
+            <nav className={`rounded-full p-2 flex items-center gap-5 justify-between m-1 ${communicateMutation.isPending ? "bg-red-700 animate-caret-blink" : "bg-green-200"}`}>
                 <h1 className="p-3 border-2 border-black rounded-full">Fabric OS</h1>
                 <h1 className="text-2xl">Marketing</h1>
                 <ul className="flex items-center justify-center gap-2">
@@ -78,6 +95,11 @@ export default function Marketing() {
                             ))}
                         </SelectContent>
                     </Select>
+                    {   communicateMutation.isPending &&
+                        <div className="bg-red-700 text-white rounded-full flex px-3 items-center gap-5">Sending Communication 
+                        <Spinner className="text-white size-10"/>
+                        </div>
+                    }
                     <p> Choose your SMS Template :</p>
                     <Select value={SelectedSmsTemplate} onValueChange={setSmsTemplate}>
                         <SelectTrigger className="border-2 border-black">
@@ -90,19 +112,19 @@ export default function Marketing() {
                         </SelectContent>
                     </Select>
                 </div>
-                <CustomerList customers={customers} handleSubmit={handleSubmit} enableEmail = {!!SelectedEmailTemplate} enableSMS = {!!SelectedSmsTemplate}></CustomerList>
+                <CustomerList customers={customers} handleSubmit={handleSubmit} enableEmail = {!!SelectedEmailTemplate && !communicateMutation.isPending} enableSMS = {!!SelectedSmsTemplate && !communicateMutation.isPending}></CustomerList>
             </div>
             <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Confirm Action</AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogTitle className="bg-red-700 text-white rounded-full text-center animate-caret-blink">Confirm Action !!!</AlertDialogTitle>
+                        <AlertDialogDescription className="text-red-700 text-center">
                             Are you sure you want to send {pendingAction?.channel} to {pendingAction?.selectedCustomers.length} customers?
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmSubmit}>Continue</AlertDialogAction>
+                        <AlertDialogAction onClick={confirmSubmit} className="bg-red-900">Continue</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

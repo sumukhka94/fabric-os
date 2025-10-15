@@ -20,7 +20,6 @@ export default function ManageTemplates() {
     const [templateName, setTemplateName] = useState<string>("");
     const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
     const [isChannelDialogOpen , setIsChannelDialogOpen] = useState<boolean>(false);
-    const [selectedChannel, setSelectedChannel] = useState<"Email" | "SMS" >("Email");
 
     const queryClient = useQueryClient();
 
@@ -35,7 +34,7 @@ export default function ManageTemplates() {
         enabled : !!selectedTemplate
     })
 
-    useEffect(() => {
+    useEffect(() => {   
         if(fetchedsubject)
             setSubject(fetchedsubject.subject);
     }, [fetchedsubject])
@@ -57,7 +56,7 @@ export default function ManageTemplates() {
     })
 
     const addMutation = useMutation({
-        mutationFn: () => addTemplate(templateName,subject,selectedChannel),
+        mutationFn: (channel : "EMAIL" | "SMS") => addTemplate(templateName,subject,channel),
         onSuccess : () => {
             toast.success("Added the new Template " + templateName);
             queryClient.invalidateQueries({ queryKey : ["templates"]})
@@ -117,11 +116,10 @@ export default function ManageTemplates() {
         previewMutation.mutate(subject);
     }
 
-    function handleChannelSelect(channel : "Email" | "SMS"): void {
-        setSelectedChannel(channel);
+    function handleChannelSelect(channel : "EMAIL" | "SMS"): void {
         setIsChannelDialogOpen(false);
         if (!confirm("Are you sure you want to Submit the New Template ?")) return;
-        addMutation.mutate();
+        addMutation.mutate(channel);
     }
 
     return (
@@ -211,7 +209,7 @@ export default function ManageTemplates() {
                         </DialogTitle>
                     </DialogHeader>
                     <div className="flex gap-2 justify-center">
-                        <Button onClick={() => handleChannelSelect("Email")}>Email</Button>
+                        <Button onClick={() => handleChannelSelect("EMAIL")}>Email</Button>
                         <Button onClick={() => handleChannelSelect("SMS")}>SMS</Button> 
                     </div>
                 </DialogContent>

@@ -28,3 +28,14 @@ export interface TemplateSubjects {
     id : string;
     subject : string;
 }
+
+export interface CommunicateInfo {
+    channel : string,
+    selectedCustomers : string[],
+    templateId : string,
+}
+
+export interface CommunicationResponse {
+    customersNotFound : string[],
+    customersNotified : string
+}
