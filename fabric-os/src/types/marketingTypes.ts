@@ -11,6 +11,7 @@ export interface AddCustomer {
     email: string;
     phone: string;
     address: string;
+    birth : string;
 }
 
 export interface SendToInfo {

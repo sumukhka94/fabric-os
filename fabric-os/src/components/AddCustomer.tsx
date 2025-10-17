@@ -10,13 +10,13 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 export default function AddCustomer() {
-    const [customer , setCustomer] = useState<AddCustomer>({name : "" , email : "" , phone : "" , address : ""});
+    const [customer , setCustomer] = useState<AddCustomer>({name : "" , email : "" , phone : "" , address : "" , birth : ""});
 
     const mutation = useMutation({
         mutationFn : postCustomer,
         onSuccess : (data) => {
             toast.success("Customer Added Successfully", data);
-            setCustomer({name : "", email : "", phone : "", address : ""});
+            setCustomer({name : "", email : "", phone : "", address : "", birth : ""});
         },
         onError : () => {
             toast.error("Something went wrong while adding the customer");
@@ -27,7 +27,8 @@ export default function AddCustomer() {
         name : z.string().min(1,"Name is required"),
         email : z.email({message : "Invalid email"}),
         phone : z.string().min(10, "Phone number is required and should be minimum 10 digit long"),
-        address : z.string().min(1, "Address is required")
+        address : z.string().min(1, "Address is required"),
+        birth : z.string().min(1, "Birth date is required")
     })
 
     function handleAddCustomer(e : React.FormEvent<HTMLFormElement>): void {
@@ -65,16 +66,20 @@ export default function AddCustomer() {
                             <Input className="rounded-full" type="text" placeholder="Enter the name" name="name" value={customer.name} onChange={handleInputChange}></Input>
                         </div>
                         <div className="flex gap-5 items-center">
-                            <label htmlFor="name" className="w-25 bg-indigo-200 p-2 rounded-full text-center">Email</label>
+                            <label htmlFor="email" className="w-25 bg-indigo-200 p-2 rounded-full text-center">Email</label>
                             <Input className="rounded-full" type="email" placeholder="Enter the email" name="email" value={customer.email} onChange={handleInputChange}></Input>
                         </div>
                         <div className="flex gap-5 items-center">
-                            <label htmlFor="name" className="w-25 bg-indigo-200 p-2 rounded-full text-center">Phone</label>
+                            <label htmlFor="phone" className="w-25 bg-indigo-200 p-2 rounded-full text-center">Phone</label>
                             <Input className="rounded-full" type="number" placeholder="Enter the Phone Number" name="phone" value={customer.phone} onChange={handleInputChange}></Input>
                         </div>
                         <div className="flex gap-5 items-center">
                             <label htmlFor="address" className="w-25 bg-indigo-200 p-2 rounded-full text-center">Address</label>
                             <Input className="rounded-full" type="address" placeholder="Enter the Address" name="address" value={customer.address} onChange={handleInputChange}></Input>
+                        </div>
+                        <div className="flex gap-5 items-center">
+                            <label htmlFor="birth" className="w-25 bg-indigo-200 p-2 rounded-full text-center">Birth Date</label>
+                            <Input className="rounded-full" type="date" name="birth" value={customer.birth} onChange={handleInputChange}></Input>
                         </div>
                         <div className="self-center">
                             <Button type="submit" className="rounded-full" disabled = {mutation.isPending} >{mutation.isPending ? "Adding Customer..." : "Add Customer"}</Button>
